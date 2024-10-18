@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
@@ -37,6 +39,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 
 class MainActivity : ComponentActivity() {
@@ -146,22 +149,33 @@ fun MemoryGame(modifier: Modifier = Modifier) {
         // Informationen über Versuche und Paare
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .align(Alignment.BottomCenter),
+                .padding(3.dp)
+                .align(Alignment.BottomCenter),  // Positioniere die Box unten zentriert
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Versuche: $attempts",
-                style = MaterialTheme.typography.h6,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Gefundene Paare: $pairsFound / $totalPairs",
-                style = MaterialTheme.typography.h6,
-                color = Color.Gray
-            )
+            Box(
+                modifier = Modifier
+                    .background(Color.White)  // Weißer Hintergrund
+                    .wrapContentSize()         // Passt die Größe der Box an den Inhalt an
+                    .border(1.dp, Color.Black)
+
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Versuche: $attempts",
+                        style = MaterialTheme.typography.h6,
+                        color = Color.Black  // Textfarbe Schwarz
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Gefundene Paare: $pairsFound / $totalPairs",
+                        style = MaterialTheme.typography.h6,
+                        color = Color.Black  // Textfarbe Schwarz
+                    )
+                }
+            }
         }
 
         // Kreiförmiger Button für Optionen
@@ -175,6 +189,7 @@ fun MemoryGame(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(48.dp)
+                    .background(Color.White)
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
