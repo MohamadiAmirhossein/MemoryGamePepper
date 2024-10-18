@@ -24,8 +24,20 @@ import androidx.compose.ui.platform.LocalConfiguration
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,16 +80,19 @@ fun MemoryGame(modifier: Modifier = Modifier) {
     var pairsFound by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
+    var showMenu by remember { mutableStateOf(false) }
+    var isPaused by remember { mutableStateOf(false) }
+
     // Anzahl der Paare berechnen
     val totalPairs = cards.size / 2
 
     // Logik für das Umdrehen der Karten
     LaunchedEffect(flippedCards) {
-        if (flippedCards.size == 2) {
+        if (!isPaused && flippedCards.size == 2) {
             attempts += 1 // Jeder Versuch zählt, wenn zwei Karten aufgedeckt werden
 
             // Warte darauf, dass der flipCard-Sound abgespielt wird, bevor success/fail abgespielt werden
-            kotlinx.coroutines.delay(10) // Kleine Verzögerung, um flipCard-Sound abzuspielen
+            kotlinx.coroutines.delay(300) // Kleine Verzögerung, um flipCard-Sound abzuspielen
 
             if (flippedCards[0].id != flippedCards[1].id) {
                 // Fehlversuch: falsche Karten
@@ -97,18 +112,18 @@ fun MemoryGame(modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         // Spielfeld
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),  // Grid mit 4 Spalten
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f), // Spielfeld nimmt den meisten Platz ein
+                .fillMaxWidth()  // Hier wird `fillMaxWidth()` verwendet
+                .fillMaxHeight(), // Passt sich an die Höhe an
             contentPadding = PaddingValues(16.dp)
         ) {
             items(cards.size) { index ->
                 MemoryCardView(cards[index], onClick = {
-                    if (flippedCards.size < 2 && !cards[index].isFlippedState && !cards[index].isMatchedState) {
+                    if (flippedCards.size < 2 && !cards[index].isFlippedState && !cards[index].isMatchedState && !isPaused) {
                         // Sound für das Umdrehen der Karte abspielen
                         playSound(context, R.raw.flipcard)  // flipCard.mp3 wird abgespielt
 
@@ -124,7 +139,8 @@ fun MemoryGame(modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .align(Alignment.BottomCenter),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -138,6 +154,50 @@ fun MemoryGame(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.h6,
                 color = Color.Gray
             )
+        }
+
+        // Kreiförmiger Button für Optionen
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            IconButton(
+                onClick = { showMenu = true },
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Optionen"
+                )
+            }
+
+            // Dropdown-Menü für Optionen
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(onClick = {
+                    // Spiel pausieren
+                    isPaused = !isPaused
+                    showMenu = false
+                }) {
+                    Text(text = if (isPaused) "Spiel fortsetzen" else "Spiel pausieren")
+                }
+                DropdownMenuItem(onClick = {
+                    // Spiel neustarten
+                    attempts = 0
+                    pairsFound = 0
+                    flippedCards = listOf()
+                    cards.clear()
+                    cards.addAll(createMemoryDeck())
+                    showMenu = false
+                }) {
+                    Text(text = "Spiel neustarten")
+                }
+            }
         }
     }
 }
