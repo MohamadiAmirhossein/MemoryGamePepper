@@ -113,11 +113,19 @@ fun MemoryGame(modifier: Modifier = Modifier) {
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        // Hintergrundbild
+        Image(
+            painter = painterResource(id = R.drawable.jungle), // Das Hintergrundbild jungle.png
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop // Passt das Bild an den gesamten Bildschirm an
+        )
+
         // Spielfeld
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),  // Grid mit 4 Spalten
             modifier = Modifier
-                .fillMaxWidth()  // Hier wird `fillMaxWidth()` verwendet
+                .fillMaxWidth()
                 .fillMaxHeight(), // Passt sich an die Höhe an
             contentPadding = PaddingValues(16.dp)
         ) {
@@ -207,18 +215,19 @@ fun MemoryGame(modifier: Modifier = Modifier) {
 fun MemoryCardView(card: MemoryCard, onClick: () -> Unit) {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp  // Ermittelt die Bildschirmhöhe in dp
-    val boxHeight = screenHeight / 5  // Hier kannst du anpassen, wie viel Platz eine Karte einnehmen soll
+    val boxHeight = screenHeight / 5  // Höhe der Karte basierend auf der Bildschirmgröße
 
     Card(
         modifier = Modifier
             .padding(8.dp)
             .height(boxHeight) // Dynamische Höhe basierend auf der Bildschirmgröße
-            .fillMaxWidth() // Karten nehmen die verfügbare Breite ein
+            .fillMaxWidth()    // Karten nehmen die verfügbare Breite ein
             .clickable(enabled = !card.isMatchedState && !card.isFlippedState) { onClick() },
-        backgroundColor = if (card.isFlippedState || card.isMatchedState) Color.White else Color.Gray,
+        backgroundColor = Color.Transparent, // Hintergrundfarbe wird transparent, damit das Bild sichtbar ist
         elevation = 8.dp
     ) {
         if (card.isFlippedState || card.isMatchedState) {
+            // Zeige das Bild der Karte an, wenn sie umgedreht oder gematcht ist
             Image(
                 painter = painterResource(id = card.image),
                 contentDescription = null,
@@ -227,11 +236,17 @@ fun MemoryCardView(card: MemoryCard, onClick: () -> Unit) {
                 contentScale = ContentScale.Fit // Bild passt sich an die Karte an
             )
         } else {
+            // Zeige das Hintergrundbild an, wenn die Karte nicht umgedreht ist
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "?", fontSize = 24.sp, color = Color.White)
+                Image(
+                    painter = painterResource(id = R.drawable.question_mark),  // Verwende questionMark.png
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop // Hintergrundbild füllt die Karte aus
+                )
             }
         }
     }
