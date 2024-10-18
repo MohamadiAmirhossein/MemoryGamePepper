@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.memorygame.ui.theme.MemoryGameTheme
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.Context
+import android.media.AudioManager
 import android.media.MediaPlayer
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Setzt die Medienlautstärke auf Maximum
+        setMediaVolume(this)
+
         setContent {
             MemoryGameTheme {
                 MemoryGame()
@@ -38,8 +42,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun setMediaVolume(context: Context) {
+    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    audioManager.setStreamVolume(
+        AudioManager.STREAM_MUSIC,
+        audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+        0
+    )
+}
+
 fun playSound(context: Context, soundResId: Int) {
     val mediaPlayer = MediaPlayer.create(context, soundResId)
+    mediaPlayer.setVolume(1.0f, 1.0f)  // Lautstärke für beide Kanäle auf 100% setzen (Links, Rechts)
     mediaPlayer.start()
     mediaPlayer.setOnCompletionListener {
         it.release()  // MediaPlayer nach dem Abspielen freigeben
@@ -61,10 +75,14 @@ fun MemoryGame(modifier: Modifier = Modifier) {
     LaunchedEffect(flippedCards) {
         if (flippedCards.size == 2) {
             attempts += 1 // Jeder Versuch zählt, wenn zwei Karten aufgedeckt werden
+
+            // Warte darauf, dass der flipCard-Sound abgespielt wird, bevor success/fail abgespielt werden
+            kotlinx.coroutines.delay(10) // Kleine Verzögerung, um flipCard-Sound abzuspielen
+
             if (flippedCards[0].id != flippedCards[1].id) {
                 // Fehlversuch: falsche Karten
                 playSound(context, R.raw.fail)  // Sound für Fehlversuch abspielen
-                kotlinx.coroutines.delay(10)
+                kotlinx.coroutines.delay(1000)  // 1 Sekunde warten, bevor die Karten wieder umgedreht werden
                 flippedCards.forEach { it.isFlippedState = false }
             } else {
                 // Erfolg: korrektes Paar
@@ -73,6 +91,7 @@ fun MemoryGame(modifier: Modifier = Modifier) {
                 flippedCards[1].isMatchedState = true
                 pairsFound += 1 // Paar gefunden
             }
+
             // Liste der umgedrehten Karten leeren
             flippedCards = listOf()
         }
@@ -90,6 +109,9 @@ fun MemoryGame(modifier: Modifier = Modifier) {
             items(cards.size) { index ->
                 MemoryCardView(cards[index], onClick = {
                     if (flippedCards.size < 2 && !cards[index].isFlippedState && !cards[index].isMatchedState) {
+                        // Sound für das Umdrehen der Karte abspielen
+                        playSound(context, R.raw.flipcard)  // flipCard.mp3 wird abgespielt
+
                         // Karte umdrehen und zur Liste der umgedrehten Karten hinzufügen
                         cards[index].isFlippedState = true
                         flippedCards = flippedCards + cards[index]
@@ -119,6 +141,7 @@ fun MemoryGame(modifier: Modifier = Modifier) {
         }
     }
 }
+
 
 @Composable
 fun MemoryCardView(card: MemoryCard, onClick: () -> Unit) {
