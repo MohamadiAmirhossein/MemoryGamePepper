@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -41,6 +43,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,18 +136,23 @@ fun MemoryGame(modifier: Modifier = Modifier) {
             contentPadding = PaddingValues(16.dp)
         ) {
             items(cards.size) { index ->
-                MemoryCardView(cards[index], onClick = {
-                    if (flippedCards.size < 2 && !cards[index].isFlippedState && !cards[index].isMatchedState && !isPaused) {
-                        // Sound für das Umdrehen der Karte abspielen
-                        playSound(context, R.raw.flipcard)  // flipCard.mp3 wird abgespielt
+                MemoryCardView(
+                    card = cards[index],
+                    flippedCards = flippedCards,  // Liste der umgedrehten Karten übergeben
+                    onClick = {
+                        if (flippedCards.size < 2 && !cards[index].isFlippedState && !cards[index].isMatchedState && !isPaused) {
+                            // Sound für das Umdrehen der Karte abspielen
+                            playSound(context, R.raw.flipcard)  // flipCard.mp3 wird abgespielt
 
-                        // Karte umdrehen und zur Liste der umgedrehten Karten hinzufügen
-                        cards[index].isFlippedState = true
-                        flippedCards = flippedCards + cards[index]
+                            // Karte umdrehen und zur Liste der umgedrehten Karten hinzufügen
+                            cards[index].isFlippedState = true
+                            flippedCards = flippedCards + cards[index]
+                        }
                     }
-                })
+                )
             }
         }
+
 
         // Informationen über Versuche und Paare
         Column(
@@ -225,33 +233,52 @@ fun MemoryGame(modifier: Modifier = Modifier) {
     }
 }
 
-
 @Composable
-fun MemoryCardView(card: MemoryCard, onClick: () -> Unit) {
+fun MemoryCardView(card: MemoryCard, flippedCards: List<MemoryCard>, onClick: () -> Unit) {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp  // Ermittelt die Bildschirmhöhe in dp
     val boxHeight = screenHeight / 5  // Höhe der Karte basierend auf der Bildschirmgröße
 
+    // Flip-Animation
+    var flipped by remember { mutableStateOf(card.isFlippedState) }
+    val rotation by animateFloatAsState(
+        targetValue = if (flipped || card.isMatchedState) 180f else 0f,  // Dreht die Karte von 0° auf 180°
+        animationSpec = tween(durationMillis = 600)  // Dauer der Umdrehung (600ms)
+    )
+
+    // Logik für das Zurückdrehen der Karten, wenn sie kein Paar sind
+    LaunchedEffect(flippedCards) {
+        if (flippedCards.size == 2 && flippedCards[0].id != flippedCards[1].id) {
+            kotlinx.coroutines.delay(1000)  // Warte 1 Sekunde
+            flipped = false  // Drehe die Karten zurück, wenn sie kein Paar sind
+        }
+    }
+
+    // Karten-Design und Animation
     Card(
         modifier = Modifier
             .padding(8.dp)
             .height(boxHeight) // Dynamische Höhe basierend auf der Bildschirmgröße
             .fillMaxWidth()    // Karten nehmen die verfügbare Breite ein
-            .clickable(enabled = !card.isMatchedState && !card.isFlippedState) { onClick() },
+            .clickable(enabled = !card.isMatchedState && !card.isFlippedState) {
+                flipped = true  // Karte umdrehen
+                onClick()       // Spiellogik wird ausgeführt
+            }
+            .graphicsLayer {
+                rotationY = rotation  // Führt die Y-Achsen-Rotation für die Flip-Animation aus
+                cameraDistance = 12f * density  // Erhöht die Perspektive für 3D-Effekt
+            },
         backgroundColor = Color.Transparent, // Hintergrundfarbe wird transparent, damit das Bild sichtbar ist
         elevation = 8.dp
     ) {
-        if (card.isFlippedState || card.isMatchedState) {
-            // Zeige das Bild der Karte an, wenn sie umgedreht oder gematcht ist
+        if (rotation > 90f) {  // Zeige das Bild der Karte an, wenn sie mehr als zur Hälfte umgedreht ist
             Image(
                 painter = painterResource(id = card.image),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit // Bild passt sich an die Karte an
             )
-        } else {
-            // Zeige das Hintergrundbild an, wenn die Karte nicht umgedreht ist
+        } else {  // Zeige das Hintergrundbild an, wenn die Karte verdeckt ist
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -266,3 +293,6 @@ fun MemoryCardView(card: MemoryCard, onClick: () -> Unit) {
         }
     }
 }
+
+
+
