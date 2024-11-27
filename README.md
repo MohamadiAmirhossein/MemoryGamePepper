@@ -3,6 +3,8 @@
 > Das MemorySpiel für Pepper, ist ein einfaches MemorySpiel **(Spiel-Logik)** für die Senioren im Altersheim, aber mit den speziellen Funktionen.
 **Wichtig**: bei den Codes Kommentare hinzufügen und erklären!
 
+> Das Projekt wurde erfolgreich geändert und läuft jetzt jetzt auf Android Studio Bumblebee 2021.1.1 Patch3
+
 ### Der ganze Spiel-Ablauf
 > *Stand1*: Nachdem Starten des Spiels, kommt man im Start-Menü. Hier ist ein Start-Button zu sehen. Wenn man auf ihn drückt, kommt man in ein anderes Menü.
 
