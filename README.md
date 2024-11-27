@@ -16,11 +16,11 @@
 
 ## Meileinsteine
 - erstmal ein einfaches funktionbares Memory-Spiel programmieren (Ohne ein Anfang-Menü, oder sonst was) => einfach funktionbar. 4x4 Grid für Anfang
-- Die Kästchen sollen sich automatisch an jedem Bildschirmgröße anpassen (Länge und Breite)
+- Die Kästchen sollen sich automatisch an jeder Bildschirmgröße anpassen (Länge und Breite)
 - Die Karten sollen immer zufällig gelegt werden
 - Ein Box, dass zeigt, wie viele Versuche man schon hat und wie viele Paare gefunden und noch zu finden hat.
 - Ein Option-Button im Spiel einbauen mit Dropdown => Neustart & Pausieren
 - Hintergrundbilder hinzufügen (auch für die Karten)
-- Soundeffekte hinzufügen *Karte umdrehen, falsches paar, richtiges paar
-- Animtaion hinzufügen bei Drehung einer Karte
+- Soundeffekte hinzufügen **Karte umdrehen, falsches paar, richtiges paar**
+- Animataion hinzufügen bei Drehung einer Karte
 - 
